@@ -43,7 +43,37 @@ function preload() {
     this.load.image('tilesImg', 'assets/spritesheets/spritesheet_tiles.png');
     
     // player
-    this.load.atlasXML('alien', 'assets/spritesheets/spritesheet_players.png', 'assets/spritesheets/spritesheet_players.xml');
+    // this.load.atlasXML('alien', 'assets/spritesheets/spritesheet_players.png', 'assets/spritesheets/spritesheet_players.xml');
+    this.load.spritesheet('taneIdle', 'https://cdn.glitch.com/cd67e3a9-81c5-485d-bf8a-852d63395343%2Ftane-idle.png?v=1606611069685', {
+        frameWidth: 128,
+        frameHeight: 128
+      }
+    );
+    this.load.spritesheet('taneJump',
+      'https://cdn.glitch.com/cd67e3a9-81c5-485d-bf8a-852d63395343%2Ftane-jump.png?v=1606611070167', {
+        frameWidth: 128,
+        frameHeight: 128
+      }
+    );
+
+    this.load.spritesheet('taneRun',
+      'https://cdn.glitch.com/cd67e3a9-81c5-485d-bf8a-852d63395343%2Ftane-run.png?v=1606611070188', {
+        frameWidth: 128,
+        frameHeight: 128
+      }
+    );
+    this.load.spritesheet('taneAttack',
+      'https://cdn.glitch.com/5095b2d7-4d22-4866-a3b8-5f744eb40eb0%2F128-Attack%20Sprite.png?v=1602576237547', {
+        frameWidth: 128,
+        frameHeight: 128
+      }
+    );
+    this.load.spritesheet('taneDeath',
+      'https://cdn.glitch.com/5095b2d7-4d22-4866-a3b8-5f744eb40eb0%2F128-Death-Sprite.png?v=1602576237169', {
+        frameWidth: 128,
+        frameHeight: 128
+      }
+    );
     
     // enemy
     this.load.atlasXML('enemies', 'assets/spritesheets/spritesheet_enemies.png', 'assets/spritesheets/spritesheet_enemies.xml');
@@ -57,8 +87,11 @@ function create() {
     // background
     backgroundImage = this.add.image(0, 0, 'background').setOrigin(0, 0);
     backgroundImage.setScale(1)
+    backgroundImage.setScrollFactor(0.1)
+    
     // map
     const map = this.make.tilemap({key: 'map' });
+
     // ground
     const groundsTileset = map.addTilesetImage('spritesheet_ground', 'groundsImg');
     const tilesTileset = map.addTilesetImage('spritesheet_tiles', 'tilesImg')
@@ -73,10 +106,10 @@ function create() {
     tiles.setCollisionByExclusion(-1, true)
 
     // player
-    player = this.physics.add.sprite(50, 400, 'alien');
-    player.setScale(0.5)
+    player = this.physics.add.sprite(50, 400, 'taneIdle');
+    player.setScale(1)
     player.setBounce(0.05);
-    player.body.setSize(player.width, player.height - 150).setOffset(0, 150);
+    player.body.setSize(player.width - 100, player.height - 50).setOffset(50, 25);
     
     // collider
     this.physics.add.collider(player, platforms);
@@ -84,7 +117,7 @@ function create() {
 
     /* Create and define a camera to follow the player */
     // --- Camera ---
-    this.cameras.main.setBounds(0, 0, 4200, 570)
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, 570)
     var camera = this.cameras.main
     camera.startFollow(player, true)
     camera.setZoom(1)
@@ -109,27 +142,46 @@ function create() {
     // animations
     this.anims.create({
         key: 'walk',
-        frames: this.anims.generateFrameNames('alien', { 
-            prefix: 'alienYellow_walk', 
-            suffix: '.png',
-            start: 1,
-            end: 2,
-            zeroPad: 1
+        frames: this.anims.generateFrameNames('taneRun', {
+            frames: [16, 17, 18, 19, 20, 21, 22, 23]
         }),
         frameRate: 10,
         repeat: -1
-    });
+    })
+
     this.anims.create({
         key: 'idle',
-        frames: [{ key: 'alien', frame: 'alienYellow_front.png' }],
-        frameRate: 10,
-    });
+        frames: this.anims.generateFrameNumbers('taneIdle', {
+          frames: [6, 7, 8]
+        }),
+        frameRate: 5,
+        repeat: -1
+      });
+  
     this.anims.create({
         key: 'jump',
-        frames: [{ key: 'alien', frame: 'alienYellow_jump.png' }],
+        frames: this.anims.generateFrameNumbers('taneJump', {
+            frames: [13, 15]
+        }),
         frameRate: 10,
     });
-   
+
+    this.anims.create({
+        key: 'attack',
+        frames: this.anims.generateFrameNumbers('taneAttack', {
+            frames: [8, 9, 10, 11]
+        }),
+        frameRate: 10,
+    });
+
+    this.anims.create({
+        key: 'die',
+        frames: this.anims.generateFrameNumbers('taneDeath', {
+            frames: [1, 2, 3, 4, 5]
+        }),
+        frameRate: 10,
+    })
+
     // enemies
     this.anims.create({
         key: 'beeMove',
@@ -224,10 +276,10 @@ function update(time, delta) {
 
     // flip player
     if (player.body.velocity.x > 0) {
-        player.setFlipX(false);
+        player.setFlipX(true);
     } else if (player.body.velocity.x < 0) {
         // otherwise, make them face the other side
-        player.setFlipX(true);
+        player.setFlipX(false);
     }
 
     if (health == 0) {
