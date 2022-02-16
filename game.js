@@ -137,22 +137,40 @@ function create() {
         frameRate: 10,
         repeat: -1
     });
+    this.anims.create({
+        key: 'fishUp',
+        frames: [{key: 'enemies', frame: 'fishBlue.png'}]
+    })
     
-    this.bees = this.physics.add.group({allowGravity: false,immovable: true});
-    const beeObjects = map.getObjectLayer('Enemies')['objects'];
-    beeObjects.forEach(beeObject => {
-        const bee = this.bees.create(beeObject.x * 0.3, (beeObject.y * 0.3) - beeObject.height, 'bee').setOrigin(0, 0).setScale(0.3)
-        this.tweens.add({
-            targets: bee,
-            y: 200,
-            duration: 2000,
-            ease: 'Sine.easeInOut',
-            repeat: -1,
-            yoyo: true
-        });
-        bee.play('beeMove', true);
-    });
-    this.physics.add.overlap(player, this.bees, hitBee, null, this);
+    this.enemies = this.physics.add.group({allowGravity: false,immovable: true});
+    const enemyObj = map.getObjectLayer('Enemies')['objects'];
+    enemyObj.forEach(enemyObj => {
+        if (enemyObj.type == 'bee') {
+            const bee = this.enemies.create(enemyObj.x * 0.3, (enemyObj.y * 0.3) - enemyObj.height, 'bee').setOrigin(0, 0).setScale(0.3)
+            this.tweens.add({
+                targets: bee,
+                y: 200,
+                duration: 2000,
+                ease: 'Sine.easeInOut',
+                repeat: -1,
+                yoyo: true
+            });
+            bee.play('beeMove', true);
+        }
+        if (enemyObj.type == 'fish') {
+            const fish = this.enemies.create(enemyObj.x * 0.3, (enemyObj.y * 0.4) - enemyObj.height, 'fish').setOrigin(0, 0).setScale(0.3)
+            this.tweens.add({
+                targets: fish,
+                y: 200,
+                duration: 1000,
+                ease: 'Sine.easeInOut',
+                repeat: -1,
+                yoyo: true
+            });
+            fish.play('fishUp', true);
+        }
+    })
+    this.physics.add.overlap(player, this.enemies, hitEnemy, null, this);
 }
 
 function update(time, delta) {
@@ -223,7 +241,7 @@ function update(time, delta) {
 
 }
 
-function hitBee(player, enemy) {
+function hitEnemy(player, enemy) {
     health -= 10
     player.setTint(0xff0000)
     if (player.body.x >= enemy.body.x) {
